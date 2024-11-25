@@ -1,0 +1,131 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+
+const SlangMatchingGame = () => {
+  const [slangPairs] = useState([
+    { standard: 'נדיר', slang: 'אין בליתו' },
+    { standard: 'אמת לאמיתה', slang: 'וואלה' },
+    { standard: 'אנדרלמוסיה', slang: 'בלאגן' },
+    { standard: 'תדהמה אחזה בי', slang: 'הלם' },
+    { standard: 'בבת עיני', slang: 'נשמה' },
+    { standard: 'בחפץ לב', slang: 'בכיף' },
+    { standard: 'גרוע', slang: 'על הפנים' },
+    { standard: 'האומנם?', slang: 'באמא שלך?' },
+    { standard: 'הגיעו מים עד נפש', slang: 'נשבר לי' },
+    { standard: 'הלבין פניו', slang: 'ירד עליו' },
+    { standard: 'בדיחותא', slang: 'דאחקות' },
+    { standard: 'יחיד במינו', slang: 'קול' },
+    { standard: 'יישר כח', slang: 'סחתיין' },
+    { standard: 'יצא וידו על העליונה', slang: 'יצא גבר!' },
+    { standard: 'יצא מדעתו', slang: 'התחרפן' }
+  ]);
+
+  const [shuffledStandard, setShuffledStandard] = useState([]);
+  const [shuffledSlang, setShuffledSlang] = useState([]);
+  const [selectedStandard, setSelectedStandard] = useState(null);
+  const [selectedSlang, setSelectedSlang] = useState(null);
+  const [matchedPairs, setMatchedPairs] = useState([]);
+  const [attempts, setAttempts] = useState(0);
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+
+  useEffect(() => {
+    const shuffleArray = (array) => {
+      return array.sort(() => Math.random() - 0.5);
+    };
+
+    setShuffledStandard(shuffleArray(slangPairs.map(pair => pair.standard)));
+    setShuffledSlang(shuffleArray(slangPairs.map(pair => pair.slang)));
+  }, [slangPairs]);
+
+  const handleWordClick = (word, type) => {
+    if (type === 'standard') setSelectedStandard(word);
+    else setSelectedSlang(word);
+
+    if (selectedStandard && selectedSlang) {
+      setAttempts(attempts + 1);
+      const matchFound = slangPairs.some(pair =>
+        pair.standard === selectedStandard && pair.slang === selectedSlang
+      );
+
+      setFeedbackMessage(matchFound ? '✔️ התאמה נכונה!' : '❌ לא תואם');
+      setTimeout(() => setFeedbackMessage(''), 1000);
+
+      if (matchFound) {
+        setMatchedPairs([...matchedPairs, selectedStandard, selectedSlang]);
+        setShuffledStandard(shuffledStandard.filter(w => w !== selectedStandard));
+        setShuffledSlang(shuffledSlang.filter(w => w !== selectedSlang));
+      }
+
+      setSelectedStandard(null);
+      setSelectedSlang(null);
+    }
+  };
+
+  const resetGame = () => {
+    setShuffledStandard(slangPairs.map(pair => pair.standard));
+    setShuffledSlang(slangPairs.map(pair => pair.slang));
+    setMatchedPairs([]);
+    setAttempts(0);
+    setSelectedStandard(null);
+    setSelectedSlang(null);
+  };
+
+  const isGameComplete = matchedPairs.length === slangPairs.length * 2;
+
+  return (
+    <Card className="max-w-4xl mx-auto p-6 shadow-lg bg-gray-50">
+      <CardHeader>
+        <CardTitle className="text-2xl font-bold text-indigo-700">שתפו פעולה כדי להצליח במשחק</CardTitle>
+        <p className="text-sm text-indigo-500">עליכם להתאים בין המילה בעברית תקינה לעגה (סלנג) שלה</p>
+      </CardHeader>
+
+      <CardContent>
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <h3 className="text-xl font-bold text-indigo-600">מילים תקניות</h3>
+            <div className="grid grid-cols-3 gap-4">
+              {shuffledStandard.map(word => (
+                <Button
+                  key={word}
+                  onClick={() => handleWordClick(word, 'standard')}
+                  className={`h-12 ${
+                    selectedStandard === word ? 'bg-indigo-300' : 'bg-white'
+                  } border border-indigo-400 text-indigo-800`}
+                >
+                  {word}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-purple-600">סלנג</h3>
+            <div className="grid grid-cols-3 gap-4">
+              {shuffledSlang.map(word => (
+                <Button
+                  key={word}
+                  onClick={() => handleWordClick(word, 'slang')}
+                  className={`h-12 ${
+                    selectedSlang === word ? 'bg-purple-300' : 'bg-white'
+                  } border border-purple-400 text-purple-800`}
+                >
+                  {word}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+
+      {feedbackMessage && <p className="text-lg text-center mt-4">{feedbackMessage}</p>}
+
+      <CardFooter>
+        <p>נסיונות: {attempts}</p>
+        {isGameComplete && <p className="text-green-600 font-bold">המשחק הושלם!</p>}
+        <Button onClick={resetGame} className="bg-red-500 text-white">התחל מחדש</Button>
+      </CardFooter>
+    </Card>
+  );
+};
+
+export default SlangMatchingGame;
